@@ -1,0 +1,42 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("POSTGRES_DB_URL")
+}
+
+model User {
+  id           String          @id @default(uuid()) @db.Uuid
+  email        String          @unique @db.VarChar(192)
+  password     String          @db.Char(60)
+  name         String          @db.VarChar(32)
+  lastName     String          @map("last_name") @db.VarChar(32)
+  birthday     DateTime?       @db.Date
+  country      String?         @db.VarChar(56)
+  theme        UserThemePrisma @default(light)
+  createdAt    DateTime        @default(now()) @map("created_at") @db.Timestamptz()
+  deletedAt    DateTime?       @map("deleted_at") @db.Timestamptz()
+  userSessions UserSession[]
+
+  @@map("user")
+}
+
+model UserSession {
+  id                 String   @id @default(uuid()) @db.Uuid
+  userId             String   @map("user_id") @db.Uuid
+  hashedRefreshToken String   @map("hashed_refresh_token") @db.Char(60)
+  expiresAt          DateTime @map("expires_at") @db.Timestamptz()
+  createdAt          DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  user               User     @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@map("user_session")
+}
+
+enum UserThemePrisma {
+  dark
+  light
+
+  @@map("user_theme_enum")
+}
